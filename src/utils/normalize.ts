@@ -1,40 +1,37 @@
-export type Product = {
-  platform: string;
-  name: string;
-  quantity: string;
-  price: number;
-  image?: string;
-};
+import { Product } from '../types/Product';
 
-export const normalizeSearchResponse = (data: any): Product[] => {
-  const results: Product[] = [];
+export function normalizeApiResponse(apiResponse: any): Product[] {
+  const products: Product[] = [];
 
-  if (data.swiggy?.success) {
-    data.swiggy.items.forEach((item: any) => {
-      results.push({
-        platform: 'Swiggy',
+  // Swiggy
+  if (apiResponse.swiggy?.success) {
+    apiResponse.swiggy.items.forEach((item: any) => {
+      products.push({
+        platform: 'swiggy',
         name: item.name,
         quantity: item.quantity,
-        price: Number(item.offerPrice || item.price),
-        image: item.imageId
-          ? `https://res.cloudinary.com/swiggy/image/upload/${item.imageId}`
-          : undefined
+        image: item.images?.[0],
+        price: item.price,
+        offerPrice: item.offerPrice,
+        discount: item.discount,
       });
     });
   }
 
-  if (data.blinkit?.success) {
-    data.blinkit.items.forEach((item: any) => {
-      results.push({
-        platform: 'Blinkit',
+  // Blinkit
+  if (apiResponse.blinkit?.success) {
+    apiResponse.blinkit.items.forEach((item: any) => {
+      products.push({
+        platform: 'blinkit',
         name: item.name,
         quantity: item.quantity,
-        price: Number(item.price),
-        image: item.imageUrl
+        image: item.image,
+        price: item.price,
+        offerPrice: item.offerPrice,
+        discount: item.discount,
       });
     });
   }
 
-  return results;
-};
-
+  return products;
+}

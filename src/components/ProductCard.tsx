@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { Product } from '../types/Product';
+import styles from './ProductCard.styles';
+
 
 export default function ProductCard({ product }: { product: Product }) {
   return (

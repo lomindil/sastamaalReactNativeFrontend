@@ -2,63 +2,71 @@ import React, { useState } from 'react';
 import {
   View,
   TextInput,
-  Button,
   FlatList,
-  Text
+  SafeAreaView,
+  Pressable,
+  Text,
 } from 'react-native';
 
-import { setLocation } from '../api/locationApi';
-import { searchProduct } from '../api/searchApi';
-import { normalizeSearchResponse, Product } from '../utils/normalize';
 import ProductCard from '../components/ProductCard';
+import styles from './HomeScreen.styles';
+import { searchProduct } from '../api/searchApi';
+import { setLocation } from '../api/locationApi';
+import { normalizeApiResponse } from '../utils/normalize';
 
 export default function HomeScreen() {
   const [query, setQuery] = useState('');
-  const [items, setItems] = useState<Product[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [locationSet, setLocationSet] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleGetLocation = async () => {
-    await setLocation(
-      12.935,
-      77.614,
-      'Koramangala, Bangalore'
-    );
-    alert('Location set');
+    setLoading(true);
+    try {
+      // Temporary static location (replace later with GPS)
+      await setLocation(12.935, 77.614, 'Koramangala, Bangalore');
+      setLocationSet(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSearch = async () => {
     if (!query) return;
     setLoading(true);
-    const raw = await searchProduct(query);
-    setItems(normalizeSearchResponse(raw));
-    setLoading(false);
+    try {
+      const res = await searchProduct(query);
+      setProducts(normalizeApiResponse(res));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <View style={{ padding: 16 }}>
-      <Button title="Get My Location" onPress={handleGetLocation} />
+    <SafeAreaView style={styles.container}>
+      {!locationSet && (
+        <Pressable style={styles.locationButton} onPress={handleGetLocation}>
+          <Text style={styles.locationText}>
+            {loading ? 'Setting location…' : 'Get My Location'}
+          </Text>
+        </Pressable>
+      )}
 
       <TextInput
-        placeholder="Search products..."
+        placeholder="Search milk, bread, eggs..."
         value={query}
         onChangeText={setQuery}
-        style={{
-          borderWidth: 1,
-          marginVertical: 10,
-          padding: 8
-        }}
+        onSubmitEditing={handleSearch}
+        style={styles.searchBox}
+        editable={locationSet}
       />
-
-      <Button title="Search" onPress={handleSearch} />
-
-      {loading && <Text>Loading...</Text>}
 
       <FlatList
-        data={items}
-        keyExtractor={(_, idx) => idx.toString()}
-        renderItem={({ item }) => <ProductCard item={item} />}
+        data={products}
+        keyExtractor={(item, idx) => item.platform + idx}
+        renderItem={({ item }) => <ProductCard product={item} />}
+        contentContainerStyle={{ paddingBottom: 40 }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
-
