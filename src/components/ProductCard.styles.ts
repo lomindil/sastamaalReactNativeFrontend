@@ -57,4 +57,10 @@ export default StyleSheet.create({
     fontWeight: '600',
     color: '#137333',
   },
+  platform: {
+  fontSize: 11,
+  fontWeight: '600',
+  color: '#666',
+  marginBottom: 2,
+},
 });

@@ -10,7 +10,8 @@ export default StyleSheet.create({
     backgroundColor: '#111',
     paddingVertical: 14,
     borderRadius: 14,
-    marginBottom: 14,
+    marginTop: 8, 
+    marginBottom: 12,
     alignItems: 'center',
   },
   locationText: {

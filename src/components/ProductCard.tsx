@@ -10,6 +10,10 @@ export default function ProductCard({ product }: { product: Product }) {
       <Image source={{ uri: product.image }} style={styles.image} />
 
       <View style={styles.info}>
+
+        <Text style={styles.platform}>
+        {product.platform.toUpperCase()}
+        </Text>
         <Text style={styles.name} numberOfLines={2}>
           {product.name}
         </Text>

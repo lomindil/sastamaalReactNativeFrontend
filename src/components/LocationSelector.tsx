@@ -6,6 +6,7 @@ import {
   TextInput,
   Pressable,
   FlatList,
+  StyleSheet,
 } from 'react-native';
 
 import { getCurrentLocation } from '../utils/getCurrentLocation';
@@ -20,14 +21,29 @@ export default function LocationSelector({
 }: any) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
+  const [setting, setSetting] = useState(false);
 
   const handleUseCurrentLocation = async () => {
-    const { lat, lng } = await getCurrentLocation();
-    const address = await reverseGeocode(lat, lng);
+    console.log('👉 Use Current Location pressed');
 
-    await setLocation(lat, lng, address);
-    onLocationSet({ lat, lng, address });
-    onClose();
+    try {
+      setSetting(true);
+
+      const { lat, lng } = await getCurrentLocation();
+      console.log('📍 GPS:', lat, lng);
+
+      const address = await reverseGeocode(lat, lng);
+      console.log('🏠 Address:', address);
+
+      await setLocation(lat, lng, address);
+      onLocationSet({ lat, lng, address });
+
+      onClose();
+    } catch (e) {
+      console.log('❌ Current location failed', e);
+    } finally {
+      setSetting(false);
+    }
   };
 
   const handleSearch = async (text: string) => {
@@ -37,16 +53,29 @@ export default function LocationSelector({
   };
 
   const handleSelect = async (item: any) => {
+    setSetting(true);
     await setLocation(item.lat, item.lng, item.name);
     onLocationSet({ lat: item.lat, lng: item.lng, address: item.name });
+    setSetting(false);
     onClose();
   };
 
   return (
-    <Modal visible={visible} animationType="slide">
-      <View style={{ flex: 1, padding: 16 }}>
-        <Pressable onPress={handleUseCurrentLocation}>
-          <Text style={{ fontSize: 16, marginBottom: 12 }}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      onRequestClose={onClose}   // IMPORTANT for Android
+    >
+      <View style={styles.container}>
+        {/* ✅ FIXED BUTTON */}
+        <Pressable
+          onPress={handleUseCurrentLocation}
+          style={({ pressed }) => [
+            styles.currentLocationBtn,
+            pressed && { opacity: 0.7 },
+          ]}
+        >
+          <Text style={styles.currentLocationText}>
             📍 Use Current Location
           </Text>
         </Pressable>
@@ -55,12 +84,14 @@ export default function LocationSelector({
           placeholder="Search area, city..."
           value={query}
           onChangeText={handleSearch}
-          style={{
-            backgroundColor: '#f2f2f2',
-            borderRadius: 10,
-            padding: 12,
-          }}
+          style={styles.searchBox}
         />
+
+        {setting && (
+          <Text style={styles.settingText}>
+            Setting location…
+          </Text>
+        )}
 
         <FlatList
           data={results}
@@ -68,7 +99,7 @@ export default function LocationSelector({
           renderItem={({ item }) => (
             <Pressable
               onPress={() => handleSelect(item)}
-              style={{ paddingVertical: 12 }}
+              style={styles.resultItem}
             >
               <Text>{item.name}</Text>
             </Pressable>
@@ -78,3 +109,32 @@ export default function LocationSelector({
     </Modal>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  currentLocationBtn: {
+    backgroundColor: '#f2f2f2',
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 12,
+  },
+  currentLocationText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  searchBox: {
+    backgroundColor: '#f2f2f2',
+    borderRadius: 10,
+    padding: 12,
+  },
+  settingText: {
+    marginTop: 12,
+    color: '#555',
+  },
+  resultItem: {
+    paddingVertical: 12,
+  },
+});

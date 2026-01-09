@@ -85,6 +85,12 @@ export default function HomeScreen() {
         style={styles.searchBox}
       />
 
+      {loading && (
+        <Text style={{ marginBottom: 12, color: '#555' }}>
+          Fetching results…
+        </Text>
+      )}
+
       {/* PRODUCT LIST (unchanged) */}
       <FlatList
         data={products}

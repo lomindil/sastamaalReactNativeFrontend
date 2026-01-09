@@ -15,9 +15,15 @@ export async function searchLocations(
 
   const data = await res.json();
 
-  return data.features.map((item: any) => ({
-    name: item.properties.name || item.properties.city,
-    lat: item.geometry.coordinates[1],
-    lng: item.geometry.coordinates[0],
-  }));
+  return data.features
+    .filter((item: any) => item.properties.countrycode === 'IN')
+    .map((item: any) => ({
+      name:
+        item.properties.name ||
+        item.properties.city ||
+        item.properties.state,
+      lat: item.geometry.coordinates[1],
+      lng: item.geometry.coordinates[0],
+    }));
+
 }
